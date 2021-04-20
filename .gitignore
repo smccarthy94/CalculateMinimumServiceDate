@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/ServiceDate.Services/ServiceDate.Services/obj
+/ServiceDate.Services/ServiceDate.Tests/obj
+/ServiceDate.Services/ServiceDate.Tests/bin/Debug/net5.0
+/ServiceDate.Services/ServiceDate.Services/bin/Debug/net5.0
+/.vs
+/ServiceDate.Services/.vs/ServiceDate.Services/v16
