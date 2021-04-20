@@ -8,3 +8,5 @@
 /ServiceDate.Services/ServiceDate.Services/bin/Debug/net5.0
 /.vs
 /ServiceDate.Services/.vs/ServiceDate.Services/v16
+/ServiceDate.Services/ServiceDate.Core/obj
+/ServiceDate.Services/ServiceDate.Core/bin/Debug/net5.0
