@@ -1,38 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
+using NodaTime;
 
 namespace ServiceDate.Services
 {
     public interface IPublicHolidayService
     {
-        DateTime[] GetPublicHolidays();
-        DateTime NextPublicHoliday(DateTime after);
-        bool IsPublicHoliday(DateTimeOffset date);
+        LocalDate[] GetPublicHolidays();
+        LocalDate NextPublicHoliday(LocalDateTime after);
+        bool IsPublicHoliday(LocalDateTime date);
     }
 
-    class PublicHolidayService : IPublicHolidayService
+    public class PublicHolidayService : IPublicHolidayService
     {
-        private readonly DateTime[] _publicHolidays = new DateTime[] {
-            new DateTime(2021, 04, 02),
-            new DateTime(2021, 04, 03),
-            new DateTime(2021, 04, 04),
-            new DateTime(2021, 04, 05)
+        private readonly LocalDate[] _publicHolidays = {
+            new (2021, 04, 02),
+            new (2021, 04, 03),
+            new (2021, 04, 04),
+            new (2021, 04, 05)
         };
 
-        DateTime[] GetPublicHolidays() { return _publicHolidays.OrderBy(d => d).ToArray(); }
-        DateTime NextPublicHoliday(DateTime after) { return GetPublicHolidays().FirstOrDefault(d => d > after); }
-
-        bool IsWeekend(DateTimeOffset date)
+        public LocalDate[] GetPublicHolidays()
         {
-            return new[] { DayOfWeek.Saturday, DayOfWeek.Sunday }.Contains(date.LocalDateTime.DayOfWeek);
+            return _publicHolidays.OrderBy(d => d).ToArray();
         }
 
-        bool IsPublicHoliday(DateTimeOffset date)
+        public LocalDate NextPublicHoliday(LocalDateTime after)
         {
-            return _publicHolidays.Any(ph => StartOfDay(ph) == StartOfDay(date.LocalDateTime));
+            return GetPublicHolidays().FirstOrDefault(d => d > after.Date);
+        }
+
+        public bool IsPublicHoliday(LocalDateTime date)
+        {
+            return GetPublicHolidays().Any(ph => ph == date.Date);
         }
     }
 }

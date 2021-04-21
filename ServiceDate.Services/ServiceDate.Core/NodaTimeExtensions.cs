@@ -1,19 +1,24 @@
-﻿using System;
+﻿using NodaTime;
 
 namespace ServiceDate.Core
 {
     public static class NodaTimeExtensions
     {
-        public static DateTimeOffset StartOfDay(this DateTimeOffset date)
+        public static bool IsWeekend(this LocalDate date)
         {
-            return new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, 0);
+            switch (date.DayOfWeek)
+            {
+                case IsoDayOfWeek.Saturday:
+                case IsoDayOfWeek.Sunday:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
-        public static bool IsWeekend(this DateTimeOffset date)
+        public static bool IsAfterMidday(this LocalDateTime date)
         {
-            if (date.LocalDateTime.DayOfWeek == DayOfWeek.Sunday) return true;
-            if (date.LocalDateTime.DayOfWeek == DayOfWeek.Saturday) return true;
-            return false;
+            return date.Hour >= 12;
         }
     }
 }
