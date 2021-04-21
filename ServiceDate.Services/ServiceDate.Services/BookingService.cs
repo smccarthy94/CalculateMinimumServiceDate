@@ -5,7 +5,7 @@ namespace ServiceDate.Services
 {
     public interface IBookingService
     {
-        LocalDateTime? CalculateMinimumServiceDate(int workshopId);
+        LocalDateTime? CalculateMinimumServiceDate(long workshopId);
     }
 
     public class BookingService : IBookingService
@@ -24,7 +24,7 @@ namespace ServiceDate.Services
             _publicHolidayService = publicHolidayService;
         }
 
-        public LocalDateTime? CalculateMinimumServiceDate(int workshopId)
+        public LocalDateTime? CalculateMinimumServiceDate(long workshopId)
         {
             var from = _clock.GetCurrentInstant().InUtc();
 

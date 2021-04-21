@@ -7,14 +7,14 @@ namespace ServiceDate.Tests.BookingServiceTests
 {
     public class WhenGettingMinimumServiceDate
     {
-        private readonly int _workshopId = 123;
+        private readonly long _workshopId = 123;
 
         private BookingService GivenABookingService(IClock clock)
         {
             var mockWorkshopDataService = Substitute.For<IWorkshopDataService>();
-            mockWorkshopDataService.GetMinimumNoticeDays(123).Returns(2);
-            mockWorkshopDataService.IsClosed(123, Arg.Any<LocalDate>()).Returns(false);
-            mockWorkshopDataService.IsFullyBooked(123, Arg.Any<LocalDate>()).Returns(false);
+            mockWorkshopDataService.GetMinimumNoticeDays(Arg.Any<long>()).Returns(2);
+            mockWorkshopDataService.IsClosed(Arg.Any<long>(), Arg.Any<LocalDate>()).Returns(false);
+            mockWorkshopDataService.IsFullyBooked(Arg.Any<long>(), Arg.Any<LocalDate>()).Returns(false);
 
             return new BookingService(clock, mockWorkshopDataService, new PublicHolidayService());
         }
