@@ -16,7 +16,8 @@ namespace ServiceDate.Services
             new (2021, 04, 02),
             new (2021, 04, 03),
             new (2021, 04, 04),
-            new (2021, 04, 05)
+            new (2021, 04, 05),
+            new (2021, 04, 26) // anzac day
         };
 
         public LocalDate[] GetPublicHolidays()
