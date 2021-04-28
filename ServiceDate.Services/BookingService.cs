@@ -14,9 +14,6 @@ namespace ServiceDate.Services
         private readonly IPublicHolidayService _publicHolidayService;
         private readonly IWorkshopDataService _workshopDataService;
 
-        private readonly int _daysNoticeBeforePublicHolidays = 2;
-        private readonly int _daysBufferAfterPublicHolidays = 1;
-
         public BookingService(IClock clock, IWorkshopDataService workshopDataService, IPublicHolidayService publicHolidayService)
         {
             _clock = clock;
@@ -29,97 +26,43 @@ namespace ServiceDate.Services
             var from = _clock.GetCurrentInstant().InUtc();
 
             // workshop data
-            int minimumNoticeDays = _workshopDataService.GetMinimumNoticeDays(workshopId);
+            var minimumNoticeDays = _workshopDataService.GetMinimumNoticeDays(workshopId);
+            if (from.LocalDateTime.IsAfterMidday()) minimumNoticeDays++;
 
             // init the date ranges for checking
             var minimumDate = from.Date;
             var maximumDate = from.Date.PlusDays(90);
 
-            // state tracking.
-            bool isClosed;
-            bool isFullyBooked;
-            bool isPublicHoliday;
-
-            var publicHolidayDetected = false;
             var daysSinceLastHoliday = -1;
             var extraDaysNotice = 0;
-            var beforeNoonCutOff = true;
 
-            if (from.Date.PlusDays(minimumNoticeDays) > minimumDate) // check if workshops minimum days notice is satisfied.
+            // get next date after minimum notice period.
+            if (from.Date.PlusDays(minimumNoticeDays) > minimumDate)
             {
-                minimumDate = minimumDate.PlusDays(minimumNoticeDays);
-
-                // offset post weekend minimum date for workshops that require more than one full day of notice.
-                if (minimumDate.IsWeekend()) extraDaysNotice++;
+                minimumDate = minimumDate.NextWeekdayAfterBusinessDays(minimumNoticeDays);
             }
 
-            if (from.LocalDateTime.IsAfterMidday()) // cut off at 12pm.
-            {
-                minimumDate = minimumDate.PlusDays(1);
-
-                beforeNoonCutOff = false;
-
-                // missed cut-off, and today is a friday, min date will need to be a day later to allow enough notice.
-                // only apply this extra notice for weekend case if not already considered.
-                if (from.Date.PlusDays(minimumNoticeDays).IsWeekend() && extraDaysNotice < 1) 
-                    extraDaysNotice++;
-            }
-
-            // helper methods.
-            bool ShouldIterate()
-            {
-                ValidateMinimumDate();
-                return isClosed || isFullyBooked || isPublicHoliday || minimumDate.IsWeekend();
-            }
-
-            bool CanIterate()
-            {
-                return minimumDate < maximumDate;
-            }
-
-            bool RequiresPublicHolidayBuffer()
-            {
-                return publicHolidayDetected && daysSinceLastHoliday == 1 && !beforeNoonCutOff;
-            }
-
-            void ValidateMinimumDate()
-            {
-                isClosed = _workshopDataService.IsClosed(workshopId, minimumDate);
-                isFullyBooked = _workshopDataService.IsFullyBooked(workshopId, minimumDate);
-                isPublicHoliday = _publicHolidayService.IsPublicHoliday(minimumDate.AtMidnight());
-            }
-
-            // check workshop status and if date is valid so far.
-            ValidateMinimumDate();
-
-            var nextPublicHoliday = _publicHolidayService.NextPublicHoliday(from.LocalDateTime);
-            // make this return null if no public holiday after X date..
-            if (nextPublicHoliday.Year > 1 && (from.Date.PlusDays(_daysNoticeBeforePublicHolidays) >= nextPublicHoliday))
-            {
-                // public holiday falls within the next 2 days
-                publicHolidayDetected = true;
-            }
-
-            // replicating similar code block from example seen with Anth, for the sake of this being a somewhat better fit to existing code.
-            while ((ShouldIterate() || extraDaysNotice > 0) && CanIterate())
+            // loop until we reach the maximum possible date or find a valid date.
+            while ((!IsDateValid(minimumDate, workshopId) || extraDaysNotice > 0) && minimumDate < maximumDate)
             {
                 // track when the most recent public holiday fell on.
-                if (isPublicHoliday) daysSinceLastHoliday = 0;
+                if (IsPublicHoliday(minimumDate)) daysSinceLastHoliday = 0;
                 if (daysSinceLastHoliday > -1) daysSinceLastHoliday++;
 
                 minimumDate = minimumDate.PlusDays(1);
 
-                // if we found a valid date, perform our last adjustments, 
-                // and make sure the date THIS produces is still valid, looping if required.
-                if (ShouldIterate()) continue;
+                // if date is still not valid, loop.
+                if (!IsDateValid(minimumDate, workshopId)) continue;
 
-                if (RequiresPublicHolidayBuffer())
+                // if we found a valid date, perform our last adjustments.
+                if (daysSinceLastHoliday == 1 && from.LocalDateTime.IsAfterMidday())
                 {
-                    extraDaysNotice += _daysBufferAfterPublicHolidays;
+                    extraDaysNotice += 1;
                     daysSinceLastHoliday = -1;
                 }
 
-                if (extraDaysNotice > 0)
+                // append notice if required.
+                if (extraDaysNotice > 0 && IsDateValid(minimumDate.PlusDays(extraDaysNotice), workshopId))
                 {
                     minimumDate = minimumDate.PlusDays(extraDaysNotice);
                     extraDaysNotice = 0;
@@ -127,9 +70,22 @@ namespace ServiceDate.Services
             }
 
             // if no possible days in the next 3 months.
-            if (!CanIterate() && ShouldIterate()) return null;
+            if (minimumDate >= maximumDate && !IsDateValid(minimumDate, workshopId)) return null;
 
             return minimumDate.AtMidnight();
+        }
+
+        private bool IsPublicHoliday(LocalDate date)
+        {
+            return _publicHolidayService.IsPublicHoliday(date.AtMidnight());
+        }
+
+        private bool IsDateValid(LocalDate date, long workshopId)
+        {
+            return !_workshopDataService.IsClosed(workshopId, date) &&
+                   !_workshopDataService.IsFullyBooked(workshopId, date) &&
+                   !_publicHolidayService.IsPublicHoliday(date.AtMidnight()) &&
+                   !date.IsWeekend();
         }
     }
 }
