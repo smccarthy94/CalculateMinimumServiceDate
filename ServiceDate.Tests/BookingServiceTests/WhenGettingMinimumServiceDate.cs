@@ -58,27 +58,7 @@ namespace ServiceDate.Tests.BookingServiceTests
         }
 
         [Test]
-        public void FridayAfterSameDayCutOffReturnsTheFollowingWednesday()
-        {
-            var utcNow = Instant.FromUtc(2021, 04, 16, 12, 0, 0);
-            var clock = GivenAClock(utcNow);
-            var service = GivenABookingService(clock);
-
-            Assert.AreEqual(new LocalDateTime(2021, 4, 21, 0, 0, 0), service.CalculateMinimumServiceDate(_workshopId));
-        }
-
-        [Test]
-        public void AnzacFridayBeforeSameDayCutOffReturnsTheFollowingWednesday()
-        {
-            var utcNow = Instant.FromUtc(2021, 04, 23, 11, 59, 0);
-            var clock = GivenAClock(utcNow);
-            var service = GivenABookingService(clock);
-
-            Assert.AreEqual(new LocalDateTime(2021, 4, 28, 0, 0, 0), service.CalculateMinimumServiceDate(_workshopId));
-        }
-
-        [Test]
-        public void AnzacFridayAfterSameDayCutOffReturnsTheFollowingThursday()
+        public void FridayBeforeAnzacDayAfterSameDayCutOffReturnsTheFollowingThursday()
         {
             var utcNow = Instant.FromUtc(2021, 04, 23, 12, 0, 0);
             var clock = GivenAClock(utcNow);
@@ -121,6 +101,26 @@ namespace ServiceDate.Tests.BookingServiceTests
         public void ThursdayBeforeAnzacDayAfterSameDayCutOffReturnsTheFollowingWednesday()
         {
             var utcNow = Instant.FromUtc(2021, 04, 22, 12, 0, 0);
+            var clock = GivenAClock(utcNow);
+            var service = GivenABookingService(clock);
+
+            Assert.AreEqual(new LocalDateTime(2021, 4, 28, 0, 0, 0), service.CalculateMinimumServiceDate(_workshopId));
+        }
+
+        [Test]
+        public void FridayAfterSameDayCutOffReturnsTheFollowingWednesday()
+        {
+            var utcNow = Instant.FromUtc(2021, 04, 16, 12, 0, 0);
+            var clock = GivenAClock(utcNow);
+            var service = GivenABookingService(clock);
+
+            Assert.AreEqual(new LocalDateTime(2021, 4, 21, 0, 0, 0), service.CalculateMinimumServiceDate(_workshopId));
+        }
+
+        [Test]
+        public void FridayBeforeAnzacDayBeforeSameDayCutOffReturnsTheFollowingWednesday()
+        {
+            var utcNow = Instant.FromUtc(2021, 04, 23, 11, 59, 0);
             var clock = GivenAClock(utcNow);
             var service = GivenABookingService(clock);
 
