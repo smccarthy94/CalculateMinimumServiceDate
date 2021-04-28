@@ -36,7 +36,7 @@ namespace ServiceDate.Services
             if (from.LocalDateTime.IsAfterMidday()) minimumNoticeDays++;
 
             if (from.Date.PlusDays(minimumNoticeDays) > minimumDate) 
-                minimumDate = minimumDate.NextBusinessDayAfter(minimumNoticeDays);
+                minimumDate = NextBusinessDayAfter(minimumDate, minimumNoticeDays);
 
             // loop until we reach the maximum possible date or find a valid date.
             while (!IsDateValid(minimumDate, workshopId) && minimumDate < maximumDate)
@@ -56,6 +56,17 @@ namespace ServiceDate.Services
             if (minimumDate >= maximumDate && !IsDateValid(minimumDate, workshopId)) return null;
 
             return minimumDate.AtMidnight();
+        }
+
+        private LocalDate NextBusinessDayAfter(LocalDate date, int days = 0)
+        {
+            while (days > 0 || date.IsWeekend())
+            {
+                if (!date.IsWeekend() && !_publicHolidayService.IsPublicHoliday(date.AtMidnight())) days--;
+                date = date.PlusDays(1);
+            }
+
+            return date;
         }
 
         private int DaysSinceLastPublicHoliday(LocalDate date)
