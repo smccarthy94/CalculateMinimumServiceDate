@@ -27,45 +27,28 @@ namespace ServiceDate.Services
 
             // workshop data
             var minimumNoticeDays = _workshopDataService.GetMinimumNoticeDays(workshopId);
-            if (from.LocalDateTime.IsAfterMidday()) minimumNoticeDays++;
 
             // init the date ranges for checking
             var minimumDate = from.Date;
             var maximumDate = from.Date.PlusDays(90);
 
-            var daysSinceLastHoliday = -1;
-            var extraDaysNotice = 0;
-
             // get next date after minimum notice period.
-            if (from.Date.PlusDays(minimumNoticeDays) > minimumDate)
-            {
-                minimumDate = minimumDate.NextWeekdayAfterBusinessDays(minimumNoticeDays);
-            }
+            if (from.LocalDateTime.IsAfterMidday()) minimumNoticeDays++;
+
+            if (from.Date.PlusDays(minimumNoticeDays) > minimumDate) 
+                minimumDate = minimumDate.NextBusinessDayAfter(minimumNoticeDays);
 
             // loop until we reach the maximum possible date or find a valid date.
-            while ((!IsDateValid(minimumDate, workshopId) || extraDaysNotice > 0) && minimumDate < maximumDate)
+            while (!IsDateValid(minimumDate, workshopId) && minimumDate < maximumDate)
             {
-                // track when the most recent public holiday fell on.
-                if (IsPublicHoliday(minimumDate)) daysSinceLastHoliday = 0;
-                if (daysSinceLastHoliday > -1) daysSinceLastHoliday++;
-
                 minimumDate = minimumDate.PlusDays(1);
 
-                // if date is still not valid, loop.
-                if (!IsDateValid(minimumDate, workshopId)) continue;
-
                 // if we found a valid date, perform our last adjustments.
-                if (daysSinceLastHoliday == 1 && from.LocalDateTime.IsAfterMidday())
+                if (from.LocalDateTime.IsAfterMidday() &&
+                    IsDateValid(minimumDate, workshopId) &&
+                    DaysSinceLastPublicHoliday(minimumDate) == 1)
                 {
-                    extraDaysNotice += 1;
-                    daysSinceLastHoliday = -1;
-                }
-
-                // append notice if required.
-                if (extraDaysNotice > 0 && IsDateValid(minimumDate.PlusDays(extraDaysNotice), workshopId))
-                {
-                    minimumDate = minimumDate.PlusDays(extraDaysNotice);
-                    extraDaysNotice = 0;
+                    minimumDate = minimumDate.PlusDays(1);
                 }
             }
 
@@ -75,9 +58,13 @@ namespace ServiceDate.Services
             return minimumDate.AtMidnight();
         }
 
-        private bool IsPublicHoliday(LocalDate date)
+        private int DaysSinceLastPublicHoliday(LocalDate date)
         {
-            return _publicHolidayService.IsPublicHoliday(date.AtMidnight());
+            var lastHol = _publicHolidayService.LastPublicHoliday(date.AtMidnight());
+
+            if (!lastHol.HasValue) return -1;
+
+            return Period.Between(lastHol.Value, date, PeriodUnits.Days).Days;
         }
 
         private bool IsDateValid(LocalDate date, long workshopId)

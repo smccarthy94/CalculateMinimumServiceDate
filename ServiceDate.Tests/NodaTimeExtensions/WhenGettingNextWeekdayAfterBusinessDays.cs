@@ -13,10 +13,10 @@ namespace ServiceDate.Tests.NodaTimeExtensions
         [TestCase("Wednesday, 21 April 2021", 1, ExpectedResult = "Thursday, 22 April 2021")]
         [TestCase("Thursday, 22 April 2021", 1, ExpectedResult = "Friday, 23 April 2021")]
         [TestCase("Friday, 23 April 2021", 1, ExpectedResult = "Monday, 26 April 2021")]
-        public string NextBusinessDayAfter(string input, int days)
+        public string ReturnsCorrectBusinessDay(string input, int days)
         {
             var date = LocalDate.FromDateTime(DateTime.Parse(input));
-            return date.NextWeekdayAfterBusinessDays(days).ToString();
+            return date.NextBusinessDayAfter(days).ToString();
         }
     }
 }

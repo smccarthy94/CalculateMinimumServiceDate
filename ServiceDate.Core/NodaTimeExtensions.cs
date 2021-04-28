@@ -16,7 +16,7 @@ namespace ServiceDate.Core
             }
         }
 
-        public static LocalDate NextWeekdayAfterBusinessDays(this LocalDate date, int days = 0)
+        public static LocalDate NextBusinessDayAfter(this LocalDate date, int days = 0)
         {
             while (days > 0 || date.IsWeekend())
             {
