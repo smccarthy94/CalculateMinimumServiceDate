@@ -3,12 +3,16 @@
 
 To run unit tests, navigate to solution root and execute `dotnet test`.
 Tests verify the following cases: 
-1. Monday, before sameday cut off
-1. Monday, after sameday cut off
-1. Friday, before sameday cut off
-1. Friday, after sameday cut off
-1. Wednesday before Easter, before sameday cut off
-1. Wednesday before Easter, after sameday cut off
+1. MondayBeforeSameDayCutOffReturnsWednesday
+1. MondayAfterSameDayCutOffReturnsThursday
+1. FridayBeforeSameDayCutOffReturnsTheFollowingTuesday
+1. FridayBeforeAnzacDayAfterSameDayCutOffReturnsTheFollowingThursday
+1. WednesdayBeforeEasterBeforeSameDayCutOffReturnsTheFollowingTuesday
+1. WednesdayBeforeEasterAfterSameDayCutOffReturnsTheFollowingWednesday
+1. ThursdayBeforeAnzacDayBeforeSameDayCutOffReturnsTheFollowingTuesday
+1. ThursdayBeforeAnzacDayAfterSameDayCutOffReturnsTheFollowingWednesday
+1. FridayAfterSameDayCutOffReturnsTheFollowingWednesday
+1. FridayBeforeAnzacDayBeforeSameDayCutOffReturnsTheFollowingWednesday
 
 API to retrieve a minimum date from "Now":
 `GET:http://localhost:60151/booking/minimum-service-date/123`
